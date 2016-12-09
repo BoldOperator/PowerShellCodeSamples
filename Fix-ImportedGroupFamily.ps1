@@ -1,6 +1,10 @@
 ﻿##  $Guid is the value retrieved from the edsaARServiceGUID attribute on one of the Administration Service objects that you want to be the service to run on.
 
-Param($GroupFamilyName,$ARGuid,$SQLInstance,$SQLDatabase)
+Param(
+    [string]$GroupFamilyName,
+    [string]$ARGuid,
+    [string]$SQLInstance,
+    [string]$SQLDatabase)
 
 function executeSQL($sqlText, $database = "master", $server = ".",$timeout=30)
 {
