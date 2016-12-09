@@ -4,7 +4,8 @@ Param(
     [string]$GroupFamilyName,
     [string]$ARGuid,
     [string]$SQLInstance,
-    [string]$SQLDatabase)
+    [string]$SQLDatabase,
+    [switch]$FixPreviouslyControlledGroups)
 
 function executeSQL($sqlText, $database = "master", $server = ".",$timeout=30)
 {
@@ -41,8 +42,10 @@ Set-QADObject -Identity $GroupFamilyName -ObjectAttributes @{'accountNameHistory
 
 ### Update previously controlled groups
 
-[XML]$ControlledGroupAccountNameHistory = "<GroupFamily xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""><IsControlledGroup>True</IsControlledGroup><IsCreatedByGroupFamily>True</IsCreatedByGroupFamily><ControlledBy>$guid</ControlledBy><LastUpdateTime></LastUpdateTime><LastPopulatedMembersCount></LastPopulatedMembersCount></GroupFamily>"
+if ($FixPreviouslyControlledGroups){
+    [XML]$ControlledGroupAccountNameHistory = "<GroupFamily xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""><IsControlledGroup>True</IsControlledGroup><IsCreatedByGroupFamily>True</IsCreatedByGroupFamily><ControlledBy>$guid</ControlledBy><LastUpdateTime></LastUpdateTime><LastPopulatedMembersCount></LastPopulatedMembersCount></GroupFamily>"
 
-$GF.edsvaGFControlledGroups | ForEach-Object{
-    Set-QADObject -Identity $_ -ObjectAttributes @{'accountNameHistory'=$ControlledGroupAccountNameHistory.OuterXml} -Proxy
+    $GF.edsvaGFControlledGroups | ForEach-Object{
+        Set-QADObject -Identity $_ -ObjectAttributes @{'accountNameHistory'=$ControlledGroupAccountNameHistory.OuterXml} -Proxy
+    }
 }
