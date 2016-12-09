@@ -1,0 +1,1 @@
+Get-QADUser -Proxy -ExpiredFor 0 -DontUseDefaultIncludedProperties -IncludedProperties edsvaDeprovisionStatus | Where-Object {$_.edsvaDeprovisionStatus -ne 1} | Deprovision-QADUser -ErrorAction silentlycontinue

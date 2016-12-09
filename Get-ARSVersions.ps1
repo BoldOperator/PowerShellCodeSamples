@@ -1,0 +1,1 @@
+Get-WmiObject -Class Win32_Product | Select-Object Name,Version | Where-Object {$_.Name -like "Quest*" -and ($_.Version -like "6.9*" -or $_.Version -like "6.8*" -or $_.Version -like "6.7*")} | Format-List * | Out-File -FilePath (Join-Path $HOME "desktop\ARSVersions.txt")
