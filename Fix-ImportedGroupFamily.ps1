@@ -1,6 +1,6 @@
 ﻿##  $Guid is the value retrieved from the edsaARServiceGUID attribute on one of the Administration Service objects that you want to be the service to run on.
 
-Param($GroupFamilyName,$ARGuid)
+Param($GroupFamilyName,$ARGuid,$SQLInstance,$SQLDatabase)
 
 function executeSQL($sqlText, $database = "master", $server = ".",$timeout=30)
 {
@@ -25,9 +25,9 @@ SET @GUID = '$guid'
 SET @ARGUID = '$ARGuid'
 INSERT [dbo].[ScheduledTasks] ([ParentObjectGUID], [name], [distinguishedName], [description], [objectClass], [edsaDataSource], [edsaIsPredefined], [edsaSystemObject], [showInAdvancedViewOnly], [edsaShowInRawViewOnly], [systemFlags], [edsaParameters], [edsaXMLSchedule], [edsaDisableSchedule], [edsaModule], [edsaTaskState], [edsaTaskType], [edsaLastActionMessage], [edsaLastRunTime], [edsaServerToExecute], [edsaForceTermination], [edsaForceExecution], [edsaExtensionType], [edsaExtensionNetClassID], [whenCreated], [whenChanged], [sign], [displayName]) VALUES (N'dfb0c60b-3cde-42cb-935b-aafc6d675bfb', N'GroupFamily-' + @GUID, N'CN=GroupFamily-' + @GUID + ',CN=Group Family,CN=Scheduled Tasks,CN=Server Configuration,CN=Configuration', N'Auto-generated task to run Group Family. Do not modify or delete this task; otherwise, Group Family may stop functioning. This is part of Group Family configuration, and should only be administered by managing Group Family properties.', N'edsScheduledTask', NULL, 0, 1, NULL, 1, NULL, NULL, N'<?xml version=""1.0""?>
 <Schedule><Daily><Every>1</Every><Start><Time>15:00:00.000</Time><Date>2016-12-08</Date></Start></Daily></Schedule>
-', 0, @GUID, 4, 0, NULL, CAST(0x0000A6D401457F58 AS DateTime), @ARGUID, NULL, 0, NULL, NULL, CAST(0x0000A6D4013E0C9A AS DateTime), CAST(0x0000A6D401458741 AS DateTime), 0, NULL)" "ActiveRoles70_Test" "SQL\Instance1"
+', 0, @GUID, 4, 0, NULL, CAST(0x0000A6D401457F58 AS DateTime), @ARGUID, NULL, 0, NULL, NULL, CAST(0x0000A6D4013E0C9A AS DateTime), CAST(0x0000A6D401458741 AS DateTime), 0, NULL)"
 
-executeSQL $sqlCommand
+executeSQL $sqlCommand $SQLDatabase $SQLInstance
 
 [string]$taskGuid = ((Get-QADObject -Identity "GroupFamily-$guid" -Proxy).Guid).toString()
 
