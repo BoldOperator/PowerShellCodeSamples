@@ -143,10 +143,19 @@ function updateGroupFamily(){
 function updatePreviouslyControlledGroups(){
     if ($script:FixPreviouslyControlledGroups){
         status "- '-FixPreviouslyControlledGroups' switch used; updating previously controlled groups..."
+        status "`n"
         [XML]$ControlledGroupAccountNameHistory = "<GroupFamily xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""><IsControlledGroup>True</IsControlledGroup><IsCreatedByGroupFamily>True</IsCreatedByGroupFamily><ControlledBy>$script:guid</ControlledBy><LastUpdateTime></LastUpdateTime><LastPopulatedMembersCount></LastPopulatedMembersCount></GroupFamily>"
 
         $script:GF.edsvaGFControlledGroups | %{
-            Set-QADObject -Identity $_ -ObjectAttributes @{'accountNameHistory'=$ControlledGroupAccountNameHistory.OuterXml} -Proxy | Out-Null
+            try{
+                Set-QADObject -Identity $_ -ObjectAttributes @{'accountNameHistory'=$ControlledGroupAccountNameHistory.OuterXml} -Proxy | Out-Null
+            } catch {
+                status "Group: $_"
+                status "Update: FAILED`n"
+            }
+
+            status "Group: $_"
+            status "Update: SUCCESS`n"
         }
 
         status "- Controlled groups update complete."
