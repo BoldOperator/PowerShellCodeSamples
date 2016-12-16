@@ -39,7 +39,7 @@ switch ($arServices.getType().Name){
 
             if ($arConnectivity){
                 $guid_object = [System.Guid] $_.edsaARServiceGUID
-                $guid_temp1 = (($guid_object.ToByteArray() | foreach { '\' + $_.ToString('x2') }) -join '').Replace("\","")
+                $guid_temp1 = (($guid_object.ToByteArray() | %{ '\' + $_.ToString('x2') }) -join '').Replace("\","")
                 $ARGuid = ($guid_temp1.Substring(0,8) + "-" + $guid_temp1.Substring(8,4) + "-" + $guid_temp1.Substring(12,4) + "-" + $guid_temp1.Substring(16,4) + "-" + $guid_temp1.Substring(20))
                 $SQLInstance = $_.edsaSQLAlias
                 $SQLDatabase = $_.edsaDatabaseName
@@ -79,7 +79,7 @@ Set-QADObject -Identity $GroupFamilyDN -ObjectAttributes @{'accountNameHistory' 
 if ($FixPreviouslyControlledGroups){
     [XML]$ControlledGroupAccountNameHistory = "<GroupFamily xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema""><IsControlledGroup>True</IsControlledGroup><IsCreatedByGroupFamily>True</IsCreatedByGroupFamily><ControlledBy>$guid</ControlledBy><LastUpdateTime></LastUpdateTime><LastPopulatedMembersCount></LastPopulatedMembersCount></GroupFamily>"
 
-    $GF.edsvaGFControlledGroups | ForEach-Object{
+    $GF.edsvaGFControlledGroups | %{
         Set-QADObject -Identity $_ -ObjectAttributes @{'accountNameHistory'=$ControlledGroupAccountNameHistory.OuterXml} -Proxy
     }
 }
