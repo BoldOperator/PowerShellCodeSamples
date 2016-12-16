@@ -1,10 +1,5 @@
-﻿##  $Guid is the value retrieved from the edsaARServiceGUID attribute on one of the Administration Service objects that you want to be the service to run on.
-
-Param(
-    [string]$GroupFamilyName,
-    [string]$ARGuid,
-    [string]$SQLInstance,
-    [string]$SQLDatabase,
+﻿Param(
+    [string]$GroupFamilyDN,
     [switch]$FixPreviouslyControlledGroups)
 
 function executeSQL($sqlText, $database = "master", $server = ".",$timeout=30)
@@ -17,8 +12,46 @@ function executeSQL($sqlText, $database = "master", $server = ".",$timeout=30)
 
 }
 
+$ARGuid = ""
+$SQLInstance = ""
+$SQLDatabase = ""
 
-$GF = Get-QADObject -Identity $GroupFamilyName -IncludedProperties edsvaGFControlledGroups -Proxy
+$arServices = Get-QADObject -SearchRoot 'Configuration/Server Configuration/Administration Services' -Type edsARService -IncludeAllProperties -Proxy
+
+switch ($arServices.getType().Name){
+    "ArsDirectoryObject" {
+        $guid_object = [System.Guid] $arServices.edsaARServiceGUID
+        $guid_temp1 = (($guid_object.ToByteArray() | %{ '\' + $_.ToString('x2') }) -join '').Replace("\","")
+        $ARGuid = ($guid_temp1.Substring(0,8) + "-" + $guid_temp1.Substring(8,4) + "-" + $guid_temp1.Substring(12,4) + "-" + $guid_temp1.Substring(16,4) + "-" + $guid_temp1.Substring(20))
+        $SQLInstance = $arServices.edsaSQLAlias
+        $SQLDatabase = $arServices.edsaDatabaseName
+        break
+    }
+
+    "Object[]" {
+        $arConnectivity = $true
+        $arServices | %{
+            try{
+                Connect-QADService -Service $_.edsaEdmServiceComputerName -Proxy
+            } catch {
+                $arConnectivity = $false
+            }
+
+            if ($arConnectivity){
+                $guid_object = [System.Guid] $_.edsaARServiceGUID
+                $guid_temp1 = (($guid_object.ToByteArray() | foreach { '\' + $_.ToString('x2') }) -join '').Replace("\","")
+                $ARGuid = ($guid_temp1.Substring(0,8) + "-" + $guid_temp1.Substring(8,4) + "-" + $guid_temp1.Substring(12,4) + "-" + $guid_temp1.Substring(16,4) + "-" + $guid_temp1.Substring(20))
+                $SQLInstance = $_.edsaSQLAlias
+                $SQLDatabase = $_.edsaDatabaseName
+                break
+            }
+
+            $arConnectivity = $true
+        }
+    }
+}
+
+$GF = Get-QADObject -Identity $GroupFamilyDN -IncludedProperties edsvaGFControlledGroups -Proxy
 [XML]$GFAccountNameHistory = $GF.accountNameHistory
 
 $guid = $GF.Guid
@@ -37,8 +70,9 @@ executeSQL $sqlCommand $SQLDatabase $SQLInstance
 [string]$taskGuid = ((Get-QADObject -Identity "GroupFamily-$guid" -Proxy).Guid).toString()
 
 $GFAccountNameHistory.GroupFamily.GuidTask = $taskGuid
+$GFAccountNameHistory.GroupFamily.ServerToExecute = $ARGuid
 
-Set-QADObject -Identity $GroupFamilyName -ObjectAttributes @{'accountNameHistory' = $GFAccountNameHistory.OuterXml}
+Set-QADObject -Identity $GroupFamilyDN -ObjectAttributes @{'accountNameHistory' = $GFAccountNameHistory.OuterXml}
 
 ### Update previously controlled groups
 
