@@ -1,4 +1,30 @@
-﻿Param(
+﻿#############################################################
+# Name
+# Fix-ImportedGroupFamily.ps1
+#
+# Description
+# -GroupFamilyDN
+#     A string value of the full DN for the imported group family object that will be fixed.
+# -UseSqlAuthentication
+#     A switch indicating that SQL authentication will be used. If not present, default of Windows Authentication for the user running the script will be used. If preset, -SQLusername and -SQLpassword must be supplied as well.
+# -SQLusername
+#     A string value to specify the username in case the -UseSqlAuthentication switch is used.
+# -SQLpassword
+#     A string value to specify the plain-text password in case the -UseSqlAuthentication switch is used.
+# -FixPreviouslyControlledGroups
+#     A switch used to trigger updating previously controlled groups.  A list of groups is pulled from the imported group family object.
+#
+# Syntax
+# Fix-ImportedGroupFamily.ps1 [[-GroupFamilyDN <string>] [-UseSqlAuthentication] [-SQLusername <string>] [-SQLpassword] <string>] [-FixPreviouslyControlledGroups]]
+#
+# Example 1
+# Fix-ImportedGroupFamily.ps1 -GroupFamilyDN "CN=GroupFamily,OU=Test,DC=domain,DC=com" -FixPreviouslyControlledGroups
+#
+# Example 2
+# Fix-ImportedGroupFamily.ps1 -GroupFamilyDN "CN=GroupFamily,OU=Test,DC=domain,DC=com" -UseSqlAuthentication -SQLusername "sa" -SQLpassword "P@ssw0rd" -FixPreviouslyControlledGroups
+##############################################################
+
+Param(
     [string]$GroupFamilyDN,
     [switch]$UseSqlAuthentication,
     [string]$SQLusername = "",
